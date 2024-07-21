@@ -1,22 +1,40 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import Home from '../views/Home.vue'
+// Importar componente TodoList.
+import TodoList from '../views/TodoList.vue'
+// Importar componente IssueList
+import IssueList from '../views/IssueList.vue'
+// Importar componente TodosIssues
+import TodosIssues from '../views/TodosIssues.vue';
+//Element.IU
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+
 
 Vue.use(VueRouter)
+Vue.use(ElementUI);
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Home',
+    component: Home
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/todo-list',
+    name: 'TodoList',
+    component: TodoList
+  },
+  {
+    path: '/issue-list',
+    name: 'IssueList', // Asegúrate de que el nombre aquí coincide con el nombre en la importación
+    component: IssueList
+  },
+  {
+      path: '/todos-issues',
+      name: 'TodosIssues',
+      component: TodosIssues
   }
 ]
 
