@@ -1,28 +1,29 @@
 <template>
   <div>
-    <h1>Lista de Tareas y Problemas</h1>
-    <!-- Cuadro de entrada adicional para otra lista de tareas -->
-    <form @submit.prevent="addAnotherTodo">
-      <el-input placeholder="Agregar otra tarea" v-model="anotherTodo" @keyup.enter.native="addAnotherTodo"></el-input>
+    <h1>lista de tareas</h1>
+    <!-- formulario de entrada de tareas -->
+    <form @submit.prevent="addTodo()">
+      <el-input placeholder="todo" v-model="todo"></el-input>
     </form>
     <el-row :gutter="12">
-      <!-- Área de visualización de tareas pendientes -->
-      <el-col :span="12" v-for="(todo, index) in todos" :key="index">
+      <!-- área de visualización de tareas pendientes -->
+      <el-col :span="12" v-for="( todo, index ) in todos" :key="index">
         <el-card class="box-card" shadow="hover" style="margin: 5px 0;">
           <el-row :gutter="12">
             <el-col :span="21">{{ todo }}</el-col>
             <el-col :span="3">
-              <el-button @click="removeTodo(index)" type="danger" icon="el-icon-delete" circle></el-button>
+              <el-button @click="removeTodo(index)" type="success" icon="el-icon-check" circle></el-button>
             </el-col>
           </el-row>
         </el-card>
       </el-col>
-      <el-col :span="12" v-for="issue in issues" :key="issue.id">
+      <!-- zona de visualización de problemas -->
+      <el-col :span="12" v-for="( issue, index ) in issues" :key="issue.id">
         <el-card class="box-card" shadow="hover" style="margin: 5px 0;">
           <el-row :gutter="12">
             <el-col :span="21">{{ issue.title }}</el-col>
             <el-col :span="3">
-              <el-button @click="removeIssue(issue)" type="danger" icon="el-icon-delete" circle></el-button>
+              <el-button @click="closeIssue(index)" type="success" icon="el-icon-check" circle></el-button>
             </el-col>
           </el-row>
         </el-card>
@@ -32,48 +33,53 @@
 </template>
 
 <script>
+//import TodoItem from '@/components/TodoItem.vue';
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: 'https://api.github.com/repos/diveintocode-corp/vue_seriese_api',
+  baseURL: 'https://api.github.com/repos/Miguel-Cue/Vue-App-Token',
   headers: {
     'Accept': 'application/vnd.github.v3+json',
-    'Content-Type':'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': `token ${process.env.VUE_APP_GITHUB_TOKEN}`  // token de acceso personal
   },
 });
 
 export default {
   name: 'TodosIssues',
-  data() {
+  data () {
     return {
       todo: '',
-      anotherTodo: '',
       todos: [],
       issues: []
     }
   },
   methods: {
-    addTodo() {
+    // Gestionar tareas desde aquí
+    addTodo(){
       this.todos.push(this.todo);
-      this.todo = '';
+      this.todo= '';
     },
-    addAnotherTodo() {
-      if (this.anotherTodo.trim() !== '') { 
-        this.todos.push(this.anotherTodo);
-        this.anotherTodo = '';
-      }
-    },
-    removeTodo(index) {
+    removeTodo(index){
       this.todos.splice(index, 1);
     },
-    removeIssue(issue) {
-      this.issues = this.issues.filter(i => i.id !== issue.id);
+    // Gestionar los problemas desde aquí
+    closeIssue(index){
+      const target = this.issues[index];
+      client.patch(`/issues/${target.number}`,
+          {
+            state: "closed"
+          },
+        )
+        .then(() => {
+         this.issues.splice(index, 1);
+      })
     },
     getIssues() {
-      client.get('/issues')
+      client.get('issues')
         .then((res) => {
-          this.issues = res.data;
-        });
+          this.issues = res.data
+      })
     }
   },
   created() {
