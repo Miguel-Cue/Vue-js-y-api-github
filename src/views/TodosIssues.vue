@@ -1,39 +1,25 @@
 <template>
   <div>
-    <h1>lista de tareas</h1>
-    <!-- formulario de entrada de tareas -->
-    <form @submit.prevent="addTodo()">
-      <el-input placeholder="todo" v-model="todo"></el-input>
+    <h1>Lista de Tareas y Problemas</h1>
+    <!-- Formulario de entrada de tareas -->
+    <form @submit.prevent="addTodo">
+      <el-input placeholder="Agregar tarea" v-model="todo"></el-input>
     </form>
-    <el-row :gutter="12">
-      <!-- área de visualización de tareas pendientes -->
-      <el-col :span="12" v-for="( todo, index ) in todos" :key="index">
-        <el-card class="box-card" shadow="hover" style="margin: 5px 0;">
-          <el-row :gutter="12">
-            <el-col :span="21">{{ todo }}</el-col>
-            <el-col :span="3">
-              <el-button @click="removeTodo(index)" type="success" icon="el-icon-check" circle></el-button>
-            </el-col>
-          </el-row>
-        </el-card>
-      </el-col>
-      <!-- zona de visualización de problemas -->
-      <el-col :span="12" v-for="( issue, index ) in issues" :key="issue.id">
-        <el-card class="box-card" shadow="hover" style="margin: 5px 0;">
-          <el-row :gutter="12">
-            <el-col :span="21">{{ issue.title }}</el-col>
-            <el-col :span="3">
-              <el-button @click="closeIssue(index)" type="success" icon="el-icon-check" circle></el-button>
-            </el-col>
-          </el-row>
-        </el-card>
+    <el-row :gutter="20">
+      <!-- Área de visualización de tareas y problemas -->
+      <el-col :span="12" v-for="(item, index) in intercalatedList" :key="index">
+        <todo-item
+          :item="item"
+          :type="item.type"
+          @remove-item="handleRemoveItem(index, item.type)"
+        />
       </el-col>
     </el-row>
   </div>
 </template>
 
 <script>
-//import TodoItem from '@/components/TodoItem.vue';
+import TodoItem from '@/components/TodoItem.vue';
 import axios from 'axios';
 
 const client = axios.create({
@@ -47,6 +33,9 @@ const client = axios.create({
 
 export default {
   name: 'TodosIssues',
+  components: {
+    TodoItem
+  },
   data () {
     return {
       todo: '',
@@ -54,32 +43,48 @@ export default {
       issues: []
     }
   },
+  computed: {
+    intercalatedList() {
+      const maxLength = Math.max(this.todos.length, this.issues.length);
+      const intercalated = [];
+      for (let i = 0; i < maxLength; i++) {
+        if (this.todos[i]) {
+          intercalated.push({ title: this.todos[i], type: 'todo' });
+        }
+        if (this.issues[i]) {
+          intercalated.push({ title: this.issues[i].title, type: 'issue', id: this.issues[i].id, number: this.issues[i].number });
+        }
+      }
+      return intercalated;
+    }
+  },
   methods: {
-    // Gestionar tareas desde aquí
-    addTodo(){
+    addTodo() {
       this.todos.push(this.todo);
-      this.todo= '';
+      this.todo = '';
     },
-    removeTodo(index){
+    removeTodo(index) {
       this.todos.splice(index, 1);
     },
-    // Gestionar los problemas desde aquí
-    closeIssue(index){
+    closeIssue(index) {
       const target = this.issues[index];
-      client.patch(`/issues/${target.number}`,
-          {
-            state: "closed"
-          },
-        )
-        .then(() => {
-         this.issues.splice(index, 1);
-      })
+      client.patch(`/issues/${target.number}`, {
+        state: "closed"
+      }).then(() => {
+        this.issues.splice(index, 1);
+      });
+    },
+    handleRemoveItem(index, type) {
+      if (type === 'todo') {
+        this.removeTodo(index);
+      } else if (type === 'issue') {
+        this.closeIssue(index);
+      }
     },
     getIssues() {
-      client.get('issues')
-        .then((res) => {
-          this.issues = res.data
-      })
+      client.get('issues').then((res) => {
+        this.issues = res.data;
+      });
     }
   },
   created() {
