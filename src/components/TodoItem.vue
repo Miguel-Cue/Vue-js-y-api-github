@@ -2,7 +2,7 @@
   <el-col :span="24">
     <el-card class="box-card" shadow="hover" style="margin: 10px 0;">
       <el-row :gutter="16">
-        <el-col :span="20">{{ todo }}</el-col>
+        <el-col :span="20">{{ item.title }}</el-col>
         <el-col :span="4">
           <el-button @click="handleRemove" type="danger" icon="el-icon-check" circle></el-button>
         </el-col>
@@ -15,18 +15,18 @@
 export default {
   name: 'TodoItem',
   props: {
-    todo: {
-      type: String,
+    item: {
+      type: Object,
       required: true
     },
-    index: {
-      type: Number,
+    type: {
+      type: String,
       required: true
     }
   },
   methods: {
     handleRemove() {
-      this.$emit('remove-todo', this.index);
+      this.$emit('remove-item', this.item);
     }
   }
 }
